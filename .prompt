@@ -1,7 +1,7 @@
 # instalation: just copy and past in ~/.bashrc content
 # Bash Git Prompt
-BGP_BRANCH_SAFE=("develop")
-BGP_BRANCH_UNSAFE=("master")
+BGP_BRANCH_SAFE=("dev")
+BGP_BRANCH_UNSAFE=("main")
 BGP_USER_UNSAFE=("root" "prod" "git")
 
 function in_array() {
@@ -17,35 +17,51 @@ function bgp_prompt() {
   local YELLOW="\[\e[33m\]"
   local GREEN="\[\e[32m\]"
   local BLUE="\[\e[34m\]"
+  local WHITE="\[\e[37m\]"
   local RESET="\[$(tput sgr0)\]"
+
+  # Define icons
+  local ICON_HOME="🏠"
+  local ICON_FOLDER="📁"
+  local ICON_BRANCH="🌿"
+  local ICON_ERROR="❌"
+  local ICON_SUCCESS="✅"
+  local ICON_USER="👤"
 
   # Get username and host
   local USER=$(whoami)
-  local USER_PS="${GREEN}\u${RESET}"
+  local USER_PS="$GREEN$ICON_USER\u$RESET"
   if in_array "${USER}" "${BGP_USER_UNSAFE[@]}"; then
-    USER_PS="${RED}\u@\h${RESET}"
+    USER_PS="$YELLOW$ICON_USER\u@\h$RESET"
+  fi
+
+  # Get directory information
+  local DIR_ICON="$ICON_FOLDER"
+  if [[ "$PWD" == "$HOME" ]]; then
+    DIR_ICON="$ICON_HOME"
   fi
 
   # Get git status
   local GIT_STATUS=$(git status --porcelain --ignore-submodules 2> /dev/null | wc -l)
-  local GIT_STATUS_PS="$GREEN=$RESET"
+  local GIT_STATUS_PS="$BLUE=$RESET"
   if [[ "0" != "$GIT_STATUS" ]]; then
     GIT_STATUS_PS="$RED~$GIT_STATUS$RESET"
   fi
 
   # Get git branch
   local GIT_BRANCH=$(git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/')
-  local GIT_BRANCH_PS=" $BLUE($GIT_BRANCH)$RESET$GIT_STATUS_PS"
+  local GIT_BRANCH_PS=" $ICON_BRANCH$YELLOW($GIT_BRANCH)$RESET$GIT_STATUS_PS"
   if in_array "${GIT_BRANCH}" "${BGP_BRANCH_SAFE[@]}"; then
-    GIT_BRANCH_PS=" $GREEN($GIT_BRANCH)$RESET$GIT_STATUS_PS"
+    GIT_BRANCH_PS=" $ICON_BRANCH$GREEN($GIT_BRANCH)$RESET$GIT_STATUS_PS"
   elif in_array "${GIT_BRANCH}" "${BGP_BRANCH_UNSAFE[@]}"; then
-    GIT_BRANCH_PS=" $RED($GIT_BRANCH)$RESET$GIT_STATUS_PS"
+    GIT_BRANCH_PS=" $ICON_BRANCH$RED($GIT_BRANCH)$RESET$GIT_STATUS_PS"
   elif [[ "" == "$GIT_BRANCH" ]]; then
     GIT_BRANCH_PS=""
   fi
 
-  PS1="${USER_PS} ${YELLOW}\w${RESET}${GIT_BRANCH_PS} \\$ "
-
+  # Concatenate prompt
+  local DIRECTORY="$DIR_ICON ${WHITE}\w${RESET}"
+  PS1="${USER_PS} ${DIRECTORY}${GIT_BRANCH_PS} \\$ "
 }
 
 PROMPT_COMMAND=bgp_prompt
