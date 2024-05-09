@@ -45,7 +45,7 @@ function bgp_prompt() {
   local GIT_STATUS=$(git status --porcelain --ignore-submodules 2> /dev/null | wc -l)
   local GIT_STATUS_PS="$BLUE=$RESET"
   if [[ "0" != "$GIT_STATUS" ]]; then
-    GIT_STATUS_PS="$RED~$GIT_STATUS$RESET"
+    GIT_STATUS_PS="$RED⚝ $GIT_STATUS$RESET"
   fi
 
   # Get git branch
@@ -61,7 +61,7 @@ function bgp_prompt() {
 
   # Concatenate prompt
   local DIRECTORY="$DIR_ICON ${WHITE}\w${RESET}"
-  PS1="${USER_PS} ${DIRECTORY}${GIT_BRANCH_PS} \\$ "
+  PS1="${USER_PS} ${DIRECTORY}${GIT_BRANCH_PS} → "
 }
 
 PROMPT_COMMAND=bgp_prompt
