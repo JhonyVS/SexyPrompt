@@ -27,10 +27,11 @@ function bgp_prompt() {
   local ICON_ERROR="❌"
   local ICON_SUCCESS="✅"
   local ICON_USER="👤"
+  local ICON_FIRE="🔥"
 
   # Get username and host
   local USER=$(whoami)
-  local USER_PS="$GREEN$ICON_USER\u$RESET"
+  local USER_PS="$GREEN$ICON_FIRE \u$RESET"
   if in_array "${USER}" "${BGP_USER_UNSAFE[@]}"; then
     USER_PS="$YELLOW$ICON_USER\u@\h$RESET"
   fi
@@ -65,3 +66,4 @@ function bgp_prompt() {
 }
 
 PROMPT_COMMAND=bgp_prompt
+
