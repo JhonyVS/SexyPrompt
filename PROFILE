@@ -1,0 +1,102 @@
+# PowerShell Super Profile - Custom Version
+# ============================================================================
+
+# CONFIGURACIÓN (igual a tu versión original)
+$BGP_BRANCH_SAFE = @("dev", "develop")
+$BGP_BRANCH_UNSAFE = @("main", "master", "production")
+$BGP_USER_UNSAFE = @("Administrator", "root", "prod")
+
+# FUNCIONES DE GIT (tu versión original)
+function Get-GitStatus {
+    try {
+        $status = git status --porcelain --ignore-submodules 2>$null
+        if ($status) { return ($status | Measure-Object).Count }
+        return 0
+    } catch { return -1 }
+}
+
+function Get-GitBranch {
+    try {
+        $branch = git branch 2>$null | Where-Object { $_ -match '^\*' }
+        if ($branch) { return $branch.Substring(2).Trim() }
+        return ""
+    } catch { return "" }
+}
+
+# Función para verificar Docker (solo icono)
+# function Get-DockerIcon {
+#    try {
+#        if (Get-Command docker -ErrorAction SilentlyContinue) {
+#            $dockerInfo = docker info 2>$null
+#            if ($LASTEXITCODE -eq 0) {
+#                return "🐳"
+#            }
+#        }
+#    } catch { }
+#    return ""
+#}
+
+# PROMPT MEJORADO CON TUS CAMBIOS
+function prompt {
+    $currentUser = $env:USERNAME
+    
+    # User prompt
+    if ($BGP_USER_UNSAFE -contains $currentUser) {
+        Write-Host "👤 $currentUser@$env:COMPUTERNAME" -NoNewline -ForegroundColor Yellow
+    } else {
+        Write-Host "🔥 $currentUser" -NoNewline -ForegroundColor Green
+    }
+    
+    # Directory
+    $dirIcon = if ($PWD.Path -eq $HOME) { "🏠" } else { "📁" }
+    $currentPath = $PWD.Path.Replace($HOME, "~")
+    Write-Host " $dirIcon " -NoNewline -ForegroundColor White
+    Write-Host $currentPath -NoNewline -ForegroundColor White
+    
+    # Git info (tu versión original con colores)
+    $gitBranch = Get-GitBranch
+    if ($gitBranch) {
+        $gitStatus = Get-GitStatus
+        
+        # Branch color (igual a tu versión)
+        $branchColor = "Yellow"
+        if ($BGP_BRANCH_SAFE -contains $gitBranch) {
+            $branchColor = "Green"
+        } elseif ($BGP_BRANCH_UNSAFE -contains $gitBranch) {
+            $branchColor = "Red"
+        }
+        
+        Write-Host " [🌿 " -NoNewline -ForegroundColor White
+        Write-Host $gitBranch -NoNewline -ForegroundColor $branchColor
+        
+        # Status (con colores como en tu versión original)
+        if ($gitStatus -gt 0) {
+            Write-Host " ⚝ " -NoNewline -ForegroundColor Red
+            Write-Host $gitStatus -NoNewline -ForegroundColor Red
+            Write-Host "]" -NoNewline -ForegroundColor White
+        } else {
+	    Write-Host " " -NoNewline -ForegroundColor Blue
+	    Write-Host "✓ " -NoNewline -ForegroundColor Blue
+            Write-Host "]" -NoNewline -ForegroundColor White
+        }
+    }
+    
+    # Docker icon (fuera de los corchetes de Git)
+    # $dockerIcon = Get-DockerIcon
+    # if ($dockerIcon) {
+    #     Write-Host " $dockerIcon" -NoNewline -ForegroundColor Blue
+    # }
+    
+    # Prompt final sin ✅
+    return "•→ "
+}
+
+# FUNCIONES DE UTILIDAD BÁSICAS
+function Update-PSProfile {
+    Write-Host "Recargando perfil..." -ForegroundColor Cyan
+    . $PROFILE
+}
+
+Set-Alias -Name reload -Value Update-PSProfile
+
+Write-Host "Git Prompt loaded successfully! 🚀" -ForegroundColor Green
